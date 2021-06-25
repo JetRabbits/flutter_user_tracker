@@ -1,6 +1,7 @@
-
 import 'dart:async';
+import 'dart:io';
 
+import 'package:device_info_plus/device_info_plus.dart';
 import 'package:firebase_analytics/firebase_analytics.dart';
 import 'package:firebase_analytics/observer.dart';
 import 'package:firebase_core/firebase_core.dart';
@@ -28,6 +29,8 @@ import 'package:flutter/material.dart';
 class GoogleTracker {
   static final GoogleTracker _instance = GoogleTracker._();
 
+  String? _deviceId;
+
   static Future<void> initialize() async {
     print("Firebase.initialize");
     await Firebase.initializeApp();
@@ -45,6 +48,28 @@ class GoogleTracker {
     return _instance;
   }
 
+  void _setUser({String? userId, String? personId}) {
+    try {
+      if (userId != null && userId.isNotEmpty) {
+        _firebaseAnalytics.setUserId(userId);
+        _crashlytics.setUserIdentifier(userId);
+      } else {
+        _firebaseAnalytics.setUserId("guest_$_deviceId");
+        _crashlytics.setUserIdentifier("guest_$_deviceId");
+      }
+
+      if (personId != null && personId.isNotEmpty) {
+        _firebaseAnalytics.setUserProperty(name: "person_id", value: personId);
+        _crashlytics.setCustomKey("person_id", personId);
+      } else {
+        _firebaseAnalytics.setUserProperty(name: "person_id", value: "");
+        _crashlytics.setCustomKey("person_id", "");
+      }
+    } catch (e) {
+      print("Can not set analytics properties");
+    }
+  }
+
   late FirebaseAnalytics _firebaseAnalytics;
   FirebaseAnalyticsObserver? _observer;
   late FirebaseCrashlytics _crashlytics;
@@ -53,7 +78,9 @@ class GoogleTracker {
   Future<void> configure(
       {FirebaseCrashlytics? crashlytics,
       FirebaseAnalytics? firebaseAnalytics,
-        GoogleTarckerOptions? options}) async {
+      String? userId,
+      String? personId,
+      GoogleTarckerOptions? options}) async {
     print("Lytics configure");
     if (crashlytics != null) {
       _crashlytics = crashlytics;
@@ -65,6 +92,14 @@ class GoogleTracker {
       print("Lytics create FirebaseLyticsObserver");
       _observer = FirebaseAnalyticsObserver(analytics: _firebaseAnalytics);
     }
+    DeviceInfoPlugin deviceInfo = DeviceInfoPlugin();
+    if (Platform.isAndroid) {
+      _deviceId = (await deviceInfo.androidInfo).androidId;
+    } else {
+      _deviceId = (await deviceInfo.iosInfo).identifierForVendor;
+    }
+    _setUser(userId: userId, personId: personId);
+
     this.options = options;
   }
 
@@ -95,9 +130,11 @@ class GoogleTracker {
 
     try {
       if (options?.onCustomProperties != null) {
-        Map<String, String> _props = await options!.onCustomProperties!(context);
+        Map<String, String> _props =
+            await options!.onCustomProperties!(context);
         await Future.forEach(_props.keys, (dynamic key) async {
-          await _firebaseAnalytics.setUserProperty(name: key, value: _props[key]);
+          await _firebaseAnalytics.setUserProperty(
+              name: key, value: _props[key]);
           await _crashlytics.setCustomKey(key, _props[key]!);
         });
       }
@@ -108,14 +145,15 @@ class GoogleTracker {
 
   void logTapEvent(String buttonName, {Map<String, dynamic>? parameters}) {
     String eventName = "tap_$buttonName";
-    _fillParams(_context).then(
-        (_) => _firebaseAnalytics.logEvent(name: eventName, parameters: parameters));
+    _fillParams(_context).then((_) =>
+        _firebaseAnalytics.logEvent(name: eventName, parameters: parameters));
   }
 
   void logError(exception, stackTrace, Map<String, dynamic> parameters) {
     String eventName = "application_error_event";
     _fillParams(_context).then((_) async {
-      await _firebaseAnalytics.logEvent(name: eventName, parameters: parameters);
+      await _firebaseAnalytics.logEvent(
+          name: eventName, parameters: parameters);
       await _crashlytics.recordError(exception, stackTrace);
     });
   }
@@ -128,7 +166,7 @@ class GoogleTracker {
 
 class GoogleTarckerOptions {
   static GoogleTarckerOptions guestOptions =
-  GoogleTarckerOptions(onUserId: (_) async => "guest");
+      GoogleTarckerOptions(onUserId: (_) async => "guest");
   final Future<String> Function(BuildContext context)? onUserId;
   final Future<Map<String, String>> Function(BuildContext context)?
       onCustomProperties;

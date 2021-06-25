@@ -5,8 +5,8 @@ import 'package:firebase_analytics/firebase_analytics.dart';
 import 'package:firebase_crashlytics/firebase_crashlytics.dart';
 import 'package:flutter/cupertino.dart';
 // ignore: import_of_legacy_library_into_null_safe
-import 'package:flutter_jetlytics/flutter_jetlytics.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:flutter_user_tracker/flutter_user_tracker.dart';
 import 'package:mocktail/mocktail.dart';
 
 class MockBuildContext extends Mock implements BuildContext {}
@@ -16,6 +16,7 @@ class MockFirebaseCrashlytics extends Mock implements FirebaseCrashlytics {}
 class MockFirebaseAnalytics extends Mock implements FirebaseAnalytics {}
 
 class MockReportModeAction extends Mock implements ReportModeAction {}
+
 class StackTraceFake extends Fake implements StackTrace {}
 
 Future<void> main() async {
@@ -30,24 +31,24 @@ Future<void> main() async {
     mockReportModeAction = MockReportModeAction();
     context = MockBuildContext();
     registerFallbackValue<StackTrace>(StackTraceFake());
-    when(() => firebaseCrashlytics.recordError(any, any<StackTrace>(), reason: any(named: "reason")))
-        .thenAnswer((realInvocation) async {
+    when(() => firebaseCrashlytics.recordError(any, any<StackTrace>(),
+        reason: any(named: "reason"))).thenAnswer((realInvocation) async {
       print("firebase: ${realInvocation.positionalArguments.first}");
     });
     // when(firebaseCrashlytics.setUserIdentifier(any)).thenAnswer((_) async => print(_.positionalArguments.first));
 
     when(() => firebaseAnalytics.logEvent(
             name: any(named: "name"), parameters: any(named: "parameters")))
-        .thenAnswer((realInvocation) async => print(
-            "Lytics: ${realInvocation.namedArguments[Symbol('name')]}"));
+        .thenAnswer((realInvocation) async =>
+            print("Lytics: ${realInvocation.namedArguments[Symbol('name')]}"));
     // when(firebaseAnalytics.setUserId(any)).thenAnswer((_) async => print(_.positionalArguments.first));
   });
 
   test('Firebase Lytics integration with Catcher', () async {
-    await Lytics().configure(
+    await GoogleTracker().configure(
         crashlytics: firebaseCrashlytics,
-        Lytics: firebaseAnalytics,
-        options: LyticsOptions(onUserId: (context) async => "guest"));
+        firebaseAnalytics: firebaseAnalytics,
+        options: GoogleTarckerOptions(onUserId: (context) async => "guest"));
     var reportMode = LyticsCatcherReportMode();
     reportMode.setReportModeAction(mockReportModeAction);
     var error = Exception("Test Error");
@@ -60,13 +61,16 @@ Future<void> main() async {
         <String, dynamic>{},
         FlutterErrorDetails(exception: error),
         PlatformType.android,
-        null
-    );
+        null);
     reportMode.requestAction(report, context);
     await Future.delayed(Duration(milliseconds: 100));
-    verify(() => firebaseCrashlytics.setCrashlyticsCollectionEnabled(true)).called(1);
-    expect(verify(() => firebaseCrashlytics.setUserIdentifier(captureAny())).captured,
+    verify(() => firebaseCrashlytics.setCrashlyticsCollectionEnabled(true))
+        .called(1);
+    expect(
+        verify(() => firebaseCrashlytics.setUserIdentifier(captureAny()))
+            .captured,
         ["guest"]);
-    expect(verify(() => firebaseAnalytics.setUserId(captureAny())).captured, ["guest"]);
+    expect(verify(() => firebaseAnalytics.setUserId(captureAny())).captured,
+        ["guest"]);
   });
 }
