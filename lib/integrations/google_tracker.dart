@@ -25,52 +25,52 @@ import 'package:flutter/material.dart';
 ///   )
 /// }
 ///
-class Lytics {
-  static final Lytics _instance = Lytics._();
+class GoogleTracker {
+  static final GoogleTracker _instance = GoogleTracker._();
 
   static Future<void> initialize() async {
     print("Firebase.initialize");
     await Firebase.initializeApp();
-    await Lytics().configure(
-        Lytics: FirebaseAnalytics(),
+    await GoogleTracker().configure(
+        firebaseAnalytics: FirebaseAnalytics(),
         crashlytics: FirebaseCrashlytics.instance,
-        options: LyticsOptions.guestOptions);
+        options: GoogleTarckerOptions.guestOptions);
   }
 
-  LyticsOptions? options;
+  GoogleTarckerOptions? options;
 
-  Lytics._();
+  GoogleTracker._();
 
-  factory Lytics() {
+  factory GoogleTracker() {
     return _instance;
   }
 
-  late FirebaseAnalytics _Lytics;
+  late FirebaseAnalytics _firebaseAnalytics;
   FirebaseAnalyticsObserver? _observer;
   late FirebaseCrashlytics _crashlytics;
   BuildContext? _context;
 
   Future<void> configure(
       {FirebaseCrashlytics? crashlytics,
-      FirebaseAnalytics? Lytics,
-        LyticsOptions? options}) async {
+      FirebaseAnalytics? firebaseAnalytics,
+        GoogleTarckerOptions? options}) async {
     print("Lytics configure");
     if (crashlytics != null) {
       _crashlytics = crashlytics;
       await _crashlytics.setCrashlyticsCollectionEnabled(true);
     }
-    print("Lytics object: $Lytics");
-    if (Lytics != null) {
-      _Lytics = Lytics;
+    print("Lytics object: $firebaseAnalytics");
+    if (firebaseAnalytics != null) {
+      _firebaseAnalytics = firebaseAnalytics;
       print("Lytics create FirebaseLyticsObserver");
-      _observer = FirebaseAnalyticsObserver(analytics: _Lytics);
+      _observer = FirebaseAnalyticsObserver(analytics: _firebaseAnalytics);
     }
     this.options = options;
   }
 
   get observer => _observer;
 
-  factory Lytics.of(BuildContext? context) {
+  factory GoogleTracker.of(BuildContext? context) {
     _instance._context = context;
     return _instance;
   }
@@ -85,7 +85,7 @@ class Lytics {
     try {
       if (options?.onUserId != null) {
         String _userId = await options!.onUserId!(context);
-        await _Lytics.setUserId(_userId);
+        await _firebaseAnalytics.setUserId(_userId);
         await _crashlytics.setUserIdentifier(_userId);
       }
     } catch (e, stack) {
@@ -97,7 +97,7 @@ class Lytics {
       if (options?.onCustomProperties != null) {
         Map<String, String> _props = await options!.onCustomProperties!(context);
         await Future.forEach(_props.keys, (dynamic key) async {
-          await _Lytics.setUserProperty(name: key, value: _props[key]);
+          await _firebaseAnalytics.setUserProperty(name: key, value: _props[key]);
           await _crashlytics.setCustomKey(key, _props[key]!);
         });
       }
@@ -109,29 +109,34 @@ class Lytics {
   void logTapEvent(String buttonName, {Map<String, dynamic>? parameters}) {
     String eventName = "tap_$buttonName";
     _fillParams(_context).then(
-        (_) => _Lytics.logEvent(name: eventName, parameters: parameters));
+        (_) => _firebaseAnalytics.logEvent(name: eventName, parameters: parameters));
   }
 
   void logError(exception, stackTrace, Map<String, dynamic> parameters) {
     String eventName = "application_error_event";
     _fillParams(_context).then((_) async {
-      await _Lytics.logEvent(name: eventName, parameters: parameters);
+      await _firebaseAnalytics.logEvent(name: eventName, parameters: parameters);
       await _crashlytics.recordError(exception, stackTrace);
     });
   }
+
+  void logAction(String action, {Map<String, dynamic>? parameters}) {
+    _firebaseAnalytics.logEvent(
+        name: action.replaceAll(" ", "_"), parameters: parameters);
+  }
 }
 
-class LyticsOptions {
-  static LyticsOptions guestOptions =
-  LyticsOptions(onUserId: (_) async => "guest");
+class GoogleTarckerOptions {
+  static GoogleTarckerOptions guestOptions =
+  GoogleTarckerOptions(onUserId: (_) async => "guest");
   final Future<String> Function(BuildContext context)? onUserId;
   final Future<Map<String, String>> Function(BuildContext context)?
       onCustomProperties;
 
-  LyticsOptions({this.onUserId, this.onCustomProperties});
+  GoogleTarckerOptions({this.onUserId, this.onCustomProperties});
 }
 
 loggableAction(String actionName, BuildContext context, VoidCallback action) {
-  Lytics.of(context).logTapEvent(actionName);
+  GoogleTracker.of(context).logTapEvent(actionName);
   action();
 }

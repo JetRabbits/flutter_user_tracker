@@ -1,5 +1,5 @@
-name: flutter_jetlytics
-description: Flutter library for wrap Firebase Lytics and Crashlytics .
+name: flutter_user_tracker
+description: Flutter library for wrap Firebase Analytics and Crashlytics .
 
 # The following line prevents the package from being accidentally published to
 # pub.dev using `pub publish`. This is preferred for private packages.
@@ -23,17 +23,16 @@ environment:
 dependencies:
   flutter:
     sdk: flutter
-  firebase_core: ^1.1.0
+  firebase_core: ^1.3.0
   firebase_crashlytics: ^2.0.2
-  firebase_analytics: ^8.0.2
-  catcher: ^0.6.5
-
-
-  # The following adds the Cupertino Icons font to your application.
-  # Use with the CupertinoIcons class for iOS style icons.
-  cupertino_icons: ^1.0.2
-
+  firebase_analytics: ^8.1.2
+  catcher: ^0.6.6
+  flutter_draft:
+    git:
+      url: https://gitlab.jetrabbits.com/jetrabbits_product/flutter_draft.git
+  json_serializable:
 dev_dependencies:
+  json_annotation:
   flutter_test:
     sdk: flutter
   mocktail: ^0.1.2

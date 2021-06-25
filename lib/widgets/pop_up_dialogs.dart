@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 // ignore: import_of_legacy_library_into_null_safe
-import 'package:flutter_jetlytics/flutter_jetlytics.dart';
 import 'package:flutter_jetlytics/generated/l10n.dart';
+import 'package:flutter_jetlytics/integrations/google_tracker.dart';
 
 ///
 /// Alert dialog with ok button and analytics send
