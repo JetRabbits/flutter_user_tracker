@@ -6,19 +6,6 @@ part 'track_action.g.dart';
 
 enum TrackSystem { GOOGLE, YANDEX }
 
-dynamic toJson(TrackSystem _enum) {
-  return _enum
-      .toString()
-      .replaceAll(_enum.runtimeType.toString(), "")
-      .toLowerCase();
-}
-
-TrackSystem fromJson(dynamic json) {
-  return TrackSystem.values
-      .where((element) => toJson(element).contains(json.toString()))
-      .first;
-}
-
 @JsonSerializable()
 class TrackAction extends Action {
   final String eventName;
