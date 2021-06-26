@@ -27,6 +27,7 @@ dependencies:
   firebase_crashlytics: ^2.0.2
   firebase_analytics: ^8.1.2
   catcher: ^0.6.6
+  logging:
   device_info_plus:
   flutter_draft:
     git:

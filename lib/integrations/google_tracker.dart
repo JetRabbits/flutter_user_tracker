@@ -7,6 +7,7 @@ import 'package:firebase_analytics/observer.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_crashlytics/firebase_crashlytics.dart';
 import 'package:flutter/material.dart';
+import 'package:logging/logging.dart';
 
 ///
 /// Aggregates together both Google Lytics and Google Crashlytics features.
@@ -28,11 +29,12 @@ import 'package:flutter/material.dart';
 ///
 class GoogleTracker {
   static final GoogleTracker _instance = GoogleTracker._();
+  static final _logger = Logger("GoogleTracker");
 
   String? _deviceId;
 
   static Future<void> initialize() async {
-    print("Firebase.initialize");
+    _logger.info("Firebase.initialize");
     await Firebase.initializeApp();
     await GoogleTracker().configure(
         firebaseAnalytics: FirebaseAnalytics(),
@@ -49,6 +51,7 @@ class GoogleTracker {
   }
 
   void _setUser({String? userId, String? personId}) {
+    _logger.info("setting user id");
     try {
       if (userId != null && userId.isNotEmpty) {
         _firebaseAnalytics.setUserId(userId);
@@ -81,15 +84,15 @@ class GoogleTracker {
       String? userId,
       String? personId,
       GoogleTarckerOptions? options}) async {
-    print("Lytics configure");
+    _logger.info("configure");
     if (crashlytics != null) {
       _crashlytics = crashlytics;
       await _crashlytics.setCrashlyticsCollectionEnabled(true);
     }
-    print("Lytics object: $firebaseAnalytics");
+    _logger.info("object: $firebaseAnalytics");
     if (firebaseAnalytics != null) {
       _firebaseAnalytics = firebaseAnalytics;
-      print("Lytics create FirebaseLyticsObserver");
+      _logger.info("create FirebaseAnalyticsObserver");
       _observer = FirebaseAnalyticsObserver(analytics: _firebaseAnalytics);
     }
     DeviceInfoPlugin deviceInfo = DeviceInfoPlugin();
@@ -124,8 +127,7 @@ class GoogleTracker {
         await _crashlytics.setUserIdentifier(_userId);
       }
     } catch (e, stack) {
-      print("Can not set user id: $e");
-      print(stack);
+      _logger.info("Can not set user id", e, stack);
     }
 
     try {
@@ -138,18 +140,20 @@ class GoogleTracker {
           await _crashlytics.setCustomKey(key, _props[key]!);
         });
       }
-    } catch (e) {
-      print("Can not set Lytics properties");
+    } catch (e, stack) {
+      _logger.info("Can not set properties", e, stack);
     }
   }
 
   void logTapEvent(String buttonName, {Map<String, dynamic>? parameters}) {
+    _logger.info("logTapEvent");
     String eventName = "tap_$buttonName";
     _fillParams(_context).then((_) =>
         _firebaseAnalytics.logEvent(name: eventName, parameters: parameters));
   }
 
   void logError(exception, stackTrace, Map<String, dynamic> parameters) {
+    _logger.info("logError");
     String eventName = "application_error_event";
     _fillParams(_context).then((_) async {
       await _firebaseAnalytics.logEvent(
@@ -159,6 +163,7 @@ class GoogleTracker {
   }
 
   void logAction(String action, {Map<String, dynamic>? parameters}) {
+    _logger.info("logAction");
     _firebaseAnalytics.logEvent(
         name: action.replaceAll(" ", "_"), parameters: parameters);
   }
