@@ -16,7 +16,7 @@ Future<void> showAlertPopup(BuildContext context, String title, String detail) {
       actions: <Widget>[
         TextButton(
             child: Text(LyticsStrings.of(context).ok),
-            onPressed: () => loggableAction("dialog_ok", context, () => Navigator.of(context, rootNavigator: true).pop())),
+            onPressed: () => loggableAction("dialog_ok", () => Navigator.of(context, rootNavigator: true).pop())),
       ],
     ),
   );
@@ -37,12 +37,12 @@ Future<bool?> showYesNoPopup(BuildContext context, String title, String detail) 
                   child: Text(LyticsStrings.of(context).yes_answer,
                       style: const TextStyle(fontSize: 16)),
                   onPressed: () =>
-                    loggableAction("dialog_yes", context, () => Navigator.of(context, rootNavigator: true).pop(true))),
+                    loggableAction("dialog_yes", () => Navigator.of(context, rootNavigator: true).pop(true))),
               TextButton(
                   child: Text(LyticsStrings.of(context).no_answer,
                       style: const TextStyle(fontSize: 16)),
                   onPressed: () =>
-                    loggableAction("dialog_no", context, () => Navigator.of(context, rootNavigator: true).pop(false))),
+                    loggableAction("dialog_no", () => Navigator.of(context, rootNavigator: true).pop(false))),
             ],
           ));
 }
@@ -62,12 +62,12 @@ Future<bool?> showOptionsPopup(BuildContext context, String title, String detail
                   child: Text(option1,
                       style: const TextStyle(fontSize: 16)),
                   onPressed: () =>
-                    loggableAction("dialog_option1", context, () => Navigator.of(context, rootNavigator: true).pop(true))),
+                    loggableAction("dialog_option1", () => Navigator.of(context, rootNavigator: true).pop(true))),
               TextButton(
                   child: Text(option2,
                       style: const TextStyle(fontSize: 16)),
                   onPressed: () =>
-                    loggableAction("dialog_option2", context, () => Navigator.of(context, rootNavigator: true).pop(false))),
+                    loggableAction("dialog_option2", () => Navigator.of(context, rootNavigator: true).pop(false))),
             ],
           ));
 }

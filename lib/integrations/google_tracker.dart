@@ -39,10 +39,10 @@ class GoogleTracker {
     await GoogleTracker().configure(
         firebaseAnalytics: FirebaseAnalytics(),
         crashlytics: FirebaseCrashlytics.instance,
-        options: GoogleTarckerOptions.guestOptions);
+        options: GoogleTrackerOptions.guestOptions);
   }
 
-  GoogleTarckerOptions? options;
+  GoogleTrackerOptions? options;
 
   GoogleTracker._();
 
@@ -57,8 +57,8 @@ class GoogleTracker {
         _firebaseAnalytics.setUserId(userId);
         _crashlytics.setUserIdentifier(userId);
       } else {
-        _firebaseAnalytics.setUserId("guest_$_deviceId");
-        _crashlytics.setUserIdentifier("guest_$_deviceId");
+        _firebaseAnalytics.setUserId(_deviceId == null ? "guest": "guest_$_deviceId");
+        _crashlytics.setUserIdentifier(_deviceId == null ? "guest": "guest_$_deviceId");
       }
 
       if (personId != null && personId.isNotEmpty) {
@@ -76,14 +76,13 @@ class GoogleTracker {
   late FirebaseAnalytics _firebaseAnalytics;
   FirebaseAnalyticsObserver? _observer;
   late FirebaseCrashlytics _crashlytics;
-  BuildContext? _context;
 
   Future<void> configure(
       {FirebaseCrashlytics? crashlytics,
       FirebaseAnalytics? firebaseAnalytics,
       String? userId,
       String? personId,
-      GoogleTarckerOptions? options}) async {
+      GoogleTrackerOptions? options}) async {
     _logger.info("configure");
     if (crashlytics != null) {
       _crashlytics = crashlytics;
@@ -108,23 +107,14 @@ class GoogleTracker {
 
   get observer => _observer;
 
-  factory GoogleTracker.of(BuildContext? context) {
-    _instance._context = context;
-    return _instance;
-  }
-
-  Future<void> _fillParams(BuildContext? context) async {
-    if (context == null) {
-      print(
-          "Can not set Lytics properties due to null context. Consider use Lytics.of()");
-      return;
-    }
-
+  Future<void> _fillParams() async {
     try {
       if (options?.onUserId != null) {
-        String _userId = await options!.onUserId!(context);
-        await _firebaseAnalytics.setUserId(_userId);
-        await _crashlytics.setUserIdentifier(_userId);
+        String _userId = await options!.onUserId!();
+        if (_userId.isNotEmpty) {
+          await _firebaseAnalytics.setUserId(_userId);
+          await _crashlytics.setUserIdentifier(_userId);
+        }
       }
     } catch (e, stack) {
       _logger.info("Can not set user id", e, stack);
@@ -133,7 +123,7 @@ class GoogleTracker {
     try {
       if (options?.onCustomProperties != null) {
         Map<String, String> _props =
-            await options!.onCustomProperties!(context);
+            await options!.onCustomProperties!();
         await Future.forEach(_props.keys, (dynamic key) async {
           await _firebaseAnalytics.setUserProperty(
               name: key, value: _props[key]);
@@ -146,19 +136,19 @@ class GoogleTracker {
   }
 
   void logTapEvent(String buttonName, {Map<String, dynamic>? parameters}) {
-    _logger.info("logTapEvent");
+    _logger.info("logTapEvent $buttonName");
     String eventName = "tap_$buttonName";
-    _fillParams(_context).then((_) =>
+    _fillParams().then((_) =>
         _firebaseAnalytics.logEvent(name: eventName, parameters: parameters));
   }
 
   void logError(exception, StackTrace? stackTrace, Map<String, dynamic> parameters) {
     _logger.info("logError");
     String eventName = "application_error_event";
-    _fillParams(_context).then((_) async {
+    _fillParams().then((_) async {
       await _firebaseAnalytics.logEvent(
           name: eventName, parameters: parameters);
-      await _crashlytics.recordError(exception, stackTrace);
+      await _crashlytics.recordError(exception, stackTrace, printDetails: false);
     });
   }
 
@@ -169,17 +159,17 @@ class GoogleTracker {
   }
 }
 
-class GoogleTarckerOptions {
-  static GoogleTarckerOptions guestOptions =
-      GoogleTarckerOptions(onUserId: (_) async => "guest");
-  final Future<String> Function(BuildContext context)? onUserId;
-  final Future<Map<String, String>> Function(BuildContext context)?
+class GoogleTrackerOptions {
+  static GoogleTrackerOptions guestOptions =
+      GoogleTrackerOptions(onUserId: () async => "guest");
+  final Future<String> Function()? onUserId;
+  final Future<Map<String, String>> Function()?
       onCustomProperties;
 
-  GoogleTarckerOptions({this.onUserId, this.onCustomProperties});
+  GoogleTrackerOptions({this.onUserId, this.onCustomProperties});
 }
 
-loggableAction(String actionName, BuildContext context, VoidCallback action) {
-  GoogleTracker.of(context).logTapEvent(actionName);
+loggableAction(String actionName, VoidCallback action) {
+  GoogleTracker().logTapEvent(actionName);
   action();
 }

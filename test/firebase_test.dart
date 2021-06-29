@@ -48,7 +48,7 @@ Future<void> main() async {
     await GoogleTracker().configure(
         crashlytics: firebaseCrashlytics,
         firebaseAnalytics: firebaseAnalytics,
-        options: GoogleTarckerOptions(onUserId: (context) async => "guest"));
+        options: GoogleTrackerOptions(onUserId: () async => "guest"));
     var reportMode = LyticsCatcherReportMode();
     reportMode.setReportModeAction(mockReportModeAction);
     var error = Exception("Test Error");

@@ -10,7 +10,7 @@ import 'package:flutter_user_tracker/integrations/google_tracker.dart';
 class LyticsCatcherReportMode extends SilentReportMode {
   @override
   void requestAction(Report report, BuildContext? context) {
-    GoogleTracker.of(context)
+    GoogleTracker()
         .logError(report.error, report.stackTrace, report.customParameters);
     super.requestAction(report, context);
   }
