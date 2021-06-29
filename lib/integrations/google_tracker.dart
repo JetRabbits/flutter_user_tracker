@@ -152,7 +152,7 @@ class GoogleTracker {
         _firebaseAnalytics.logEvent(name: eventName, parameters: parameters));
   }
 
-  void logError(exception, stackTrace, Map<String, dynamic> parameters) {
+  void logError(exception, StackTrace? stackTrace, Map<String, dynamic> parameters) {
     _logger.info("logError");
     String eventName = "application_error_event";
     _fillParams(_context).then((_) async {
