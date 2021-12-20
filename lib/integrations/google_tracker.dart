@@ -92,7 +92,7 @@ class GoogleTracker {
     if (firebaseAnalytics != null) {
       _firebaseAnalytics = firebaseAnalytics;
       _logger.info("create FirebaseAnalyticsObserver");
-      _observer = FirebaseAnalyticsObserver(analytics: _firebaseAnalytics);
+      _observer = createObserver() as FirebaseAnalyticsObserver;
     }
     DeviceInfoPlugin deviceInfo = DeviceInfoPlugin();
     if (Platform.isAndroid) {
@@ -106,6 +106,7 @@ class GoogleTracker {
   }
 
   get observer => _observer;
+  RouteObserver createObserver() => FirebaseAnalyticsObserver(analytics: _firebaseAnalytics);
 
   Future<void> _fillParams() async {
     try {
