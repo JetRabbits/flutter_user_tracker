@@ -1,6 +1,5 @@
 import 'package:catcher/catcher.dart';
 import 'package:catcher/model/platform_type.dart';
-import 'package:catcher/model/report.dart';
 import 'package:flutter/widgets.dart';
 import 'package:flutter_user_tracker/integrations/google_tracker.dart';
 
