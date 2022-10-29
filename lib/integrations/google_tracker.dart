@@ -37,7 +37,7 @@ class GoogleTracker {
     _logger.info("Firebase.initialize");
     await Firebase.initializeApp();
     await GoogleTracker().configure(
-        firebaseAnalytics: FirebaseAnalytics(),
+        firebaseAnalytics: FirebaseAnalytics.instance,
         crashlytics: FirebaseCrashlytics.instance,
         options: GoogleTrackerOptions.guestOptions);
   }
@@ -54,10 +54,10 @@ class GoogleTracker {
     _logger.info("setting user id");
     try {
       if (userId != null && userId.isNotEmpty) {
-        _firebaseAnalytics.setUserId(userId);
+        _firebaseAnalytics.setUserId(id: userId);
         _crashlytics.setUserIdentifier(userId);
       } else {
-        _firebaseAnalytics.setUserId(_deviceId == null ? "guest": "guest_$_deviceId");
+        _firebaseAnalytics.setUserId(id: _deviceId == null ? "guest": "guest_$_deviceId");
         _crashlytics.setUserIdentifier(_deviceId == null ? "guest": "guest_$_deviceId");
       }
 
@@ -113,7 +113,7 @@ class GoogleTracker {
       if (options?.onUserId != null) {
         String _userId = await options!.onUserId!();
         if (_userId.isNotEmpty) {
-          await _firebaseAnalytics.setUserId(_userId);
+          await _firebaseAnalytics.setUserId(id:_userId);
           await _crashlytics.setUserIdentifier(_userId);
         }
       }

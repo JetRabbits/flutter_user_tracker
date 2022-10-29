@@ -30,7 +30,7 @@ Future<void> main() async {
     firebaseCrashlytics = MockFirebaseCrashlytics();
     mockReportModeAction = MockReportModeAction();
     context = MockBuildContext();
-    registerFallbackValue<StackTrace>(StackTraceFake());
+    registerFallbackValue(StackTraceFake());
     when(() => firebaseCrashlytics.recordError(any, any<StackTrace>(),
         reason: any(named: "reason"))).thenAnswer((realInvocation) async {
       print("firebase: ${realInvocation.positionalArguments.first}");
@@ -70,7 +70,7 @@ Future<void> main() async {
         verify(() => firebaseCrashlytics.setUserIdentifier(captureAny()))
             .captured,
         ["guest"]);
-    expect(verify(() => firebaseAnalytics.setUserId(captureAny())).captured,
+    expect(verify(() => firebaseAnalytics.setUserId(id: captureAny())).captured,
         ["guest"]);
   });
 }
