@@ -31,7 +31,7 @@ dependencies:
   device_info_plus:
   flutter_draft:
     git:
-      url: https://gitlab.jetrabbits.com/jetrabbits_product/flutter_draft.git
+      url: https://github.com/JetRabbits/flutter_draft.git
   json_serializable:
 dev_dependencies:
   json_annotation:
