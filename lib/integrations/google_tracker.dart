@@ -1,9 +1,6 @@
 import 'dart:async';
-import 'dart:io';
 
-import 'package:device_info_plus/device_info_plus.dart';
 import 'package:firebase_analytics/firebase_analytics.dart';
-import 'package:firebase_analytics/observer.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_crashlytics/firebase_crashlytics.dart';
 import 'package:flutter/material.dart';
@@ -57,8 +54,10 @@ class GoogleTracker {
         _firebaseAnalytics.setUserId(id: userId);
         _crashlytics.setUserIdentifier(userId);
       } else {
-        _firebaseAnalytics.setUserId(id: _deviceId == null ? "guest": "guest_$_deviceId");
-        _crashlytics.setUserIdentifier(_deviceId == null ? "guest": "guest_$_deviceId");
+        _firebaseAnalytics.setUserId(
+            id: _deviceId == null ? "guest" : "guest_$_deviceId");
+        _crashlytics.setUserIdentifier(
+            _deviceId == null ? "guest" : "guest_$_deviceId");
       }
 
       if (personId != null && personId.isNotEmpty) {
@@ -94,26 +93,23 @@ class GoogleTracker {
       _logger.info("create FirebaseAnalyticsObserver");
       _observer = createObserver() as FirebaseAnalyticsObserver;
     }
-    DeviceInfoPlugin deviceInfo = DeviceInfoPlugin();
-    if (Platform.isAndroid) {
-      _deviceId = (await deviceInfo.androidInfo).androidId;
-    } else {
-      _deviceId = (await deviceInfo.iosInfo).identifierForVendor;
-    }
+
     _setUser(userId: userId, personId: personId);
 
     this.options = options;
   }
 
   get observer => _observer;
-  RouteObserver createObserver() => FirebaseAnalyticsObserver(analytics: _firebaseAnalytics);
+
+  RouteObserver createObserver() =>
+      FirebaseAnalyticsObserver(analytics: _firebaseAnalytics);
 
   Future<void> _fillParams() async {
     try {
       if (options?.onUserId != null) {
         String _userId = await options!.onUserId!();
         if (_userId.isNotEmpty) {
-          await _firebaseAnalytics.setUserId(id:_userId);
+          await _firebaseAnalytics.setUserId(id: _userId);
           await _crashlytics.setUserIdentifier(_userId);
         }
       }
@@ -123,8 +119,7 @@ class GoogleTracker {
 
     try {
       if (options?.onCustomProperties != null) {
-        Map<String, String> _props =
-            await options!.onCustomProperties!();
+        Map<String, String> _props = await options!.onCustomProperties!();
         await Future.forEach(_props.keys, (dynamic key) async {
           await _firebaseAnalytics.setUserProperty(
               name: key, value: _props[key]);
@@ -143,13 +138,15 @@ class GoogleTracker {
         _firebaseAnalytics.logEvent(name: eventName, parameters: parameters));
   }
 
-  void logError(exception, StackTrace? stackTrace, Map<String, dynamic> parameters) {
+  void logError(
+      exception, StackTrace? stackTrace, Map<String, dynamic> parameters) {
     _logger.info("logError");
     String eventName = "application_error_event";
     _fillParams().then((_) async {
       await _firebaseAnalytics.logEvent(
           name: eventName, parameters: parameters);
-      await _crashlytics.recordError(exception, stackTrace, printDetails: false);
+      await _crashlytics.recordError(exception, stackTrace,
+          printDetails: false);
     });
   }
 
@@ -164,8 +161,7 @@ class GoogleTrackerOptions {
   static GoogleTrackerOptions guestOptions =
       GoogleTrackerOptions(onUserId: () async => "guest");
   final Future<String> Function()? onUserId;
-  final Future<Map<String, String>> Function()?
-      onCustomProperties;
+  final Future<Map<String, String>> Function()? onCustomProperties;
 
   GoogleTrackerOptions({this.onUserId, this.onCustomProperties});
 }
